@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مواضيعي | Midnight Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #040712;
+      --bg-midnight: #0a1024;
+      --card-bg: rgba(13, 21, 42, 0.88);
+      --card-border: rgba(99, 130, 215, 0.18);
+      --surface-soft: rgba(20, 31, 60, 0.78);
+      --text-main: #eef2ff;
+      --text-muted: #94a3b8;
+      --accent-primary: #38bdf8;
+      --accent-secondary: #6366f1;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --answer-bg: rgba(15, 28, 56, 0.92);
+      --answer-border: rgba(56, 189, 248, 0.35);
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(99, 102, 241, 0.16), transparent 40%),
+        radial-gradient(circle at 80% 85%, rgba(56, 189, 248, 0.14), transparent 42%),
+        linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-midnight) 55%, #050917 100%);
+      color: var(--text-main);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* الكارت الرئيسي */
+    .main-card {
+      width: 100%;
+      max-width: 540px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 36px 26px 28px;
+      text-align: center;
+      box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card-title {
+      font-size: clamp(1.55rem, 4.5vw, 2rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 45%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+      line-height: 1.45;
+      letter-spacing: -0.2px;
+    }
+
+    .question-box {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      padding: 10px 6px;
+    }
+
+    .question-text {
+      font-size: clamp(1.08rem, 3.3vw, 1.28rem);
+      font-weight: 600;
+      color: var(--text-muted);
+      line-height: 1.85;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .question-text.active {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    /* صندوق الإجابة */
+    .answer-wrapper {
+      display: none;
+      margin-bottom: 24px;
+      text-align: right;
+      background: var(--answer-bg);
+      border: 1px solid var(--answer-border);
+      border-right: 4px solid var(--accent-primary);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+      animation: fadeSlideIn 0.28s ease forwards;
+    }
+
+    .answer-wrapper.show {
+      display: block;
+    }
+
+    .answer-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .answer-text {
+      font-size: 1rem;
+      line-height: 1.85;
+      color: #dbeafe;
+      white-space: pre-line;
+    }
+
+    /* أزرار التحكم */
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 22px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 155px;
+      flex: 1 1 160px;
+      max-width: 220px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 22px rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(56, 189, 248, 0.36);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 75, 0.85);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* عداد الأسئلة */
+    .counter-trigger {
+      display: inline-block;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      user-select: none;
+      cursor: default;
+      padding: 6px 12px;
+      border-radius: 10px;
+    }
+
+    .counter-trigger span {
+      color: var(--accent-primary);
+      font-weight: 800;
+    }
+
+    /* زر آخر 30 سؤال (ضغطة واحدة للسجل - 3 ضغطات متتالية للداشبورد المخفية) */
+    .history-fab {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(13, 21, 42, 0.92);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+      z-index: 20;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .history-fab:hover {
+      background: rgba(56, 189, 248, 0.16);
+      transform: translateY(-2px);
+    }
+
+    /* النوافذ المنبثقة (السجل + الباسورد + الداشبورد المخفية) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 5, 14, 0.78);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 620px;
+      max-height: 90dvh;
+      background: #0b1226;
+      border: 1px solid rgba(99, 130, 215, 0.28);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+      animation: fadeSlideIn 0.22s ease;
+    }
+
+    .modal-box.modal-compact {
+      max-width: 400px;
+    }
+
+    .modal-header {
+      padding: 18px 20px;
+      background: rgba(15, 23, 48, 0.95);
+      border-bottom: 1px solid rgba(99, 130, 215, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .modal-header h3 {
+      font-size: 1.1rem;
+      color: #e0f2fe;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: 0.2s;
+    }
+
+    .close-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .modal-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* حقل الباسورد مع زر إظهار/إخفاء */
+    .password-field-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-field-wrap .form-control {
+      padding-left: 44px;
+    }
+
+    .toggle-pass-btn {
+      position: absolute;
+      left: 8px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1.05rem;
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      transition: 0.2s;
+    }
+
+    .toggle-pass-btn:hover {
+      color: #7dd3fc;
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .pass-error-msg {
+      color: #fca5a5;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 22px;
+      text-align: right;
+    }
+
+    /* التبويبات داخل الداشبورد */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      background: rgba(4, 7, 18, 0.6);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid rgba(99, 130, 215, 0.15);
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 10px 12px;
+      border-radius: 9px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      color: #fff;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* التبديل بين إضافة سؤال واحد وإضافة مجموعة */
+    .sub-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .sub-tab-btn {
+      flex: 1;
+      background: rgba(15, 24, 50, 0.85);
+      color: #94a3b8;
+      border: 1px solid rgba(99, 130, 215, 0.22);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .sub-tab-btn.active {
+      background: rgba(56, 189, 248, 0.16);
+      color: #7dd3fc;
+      border-color: var(--accent-primary);
+    }
+
+    .sub-panel {
+      display: none;
+    }
+
+    .sub-panel.active {
+      display: block;
+    }
+
+    /* معاينة الإضافة الجماعية */
+    .bulk-preview-box {
+      background: rgba(6, 11, 25, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .bulk-preview-box.show {
+      display: block;
+    }
+
+    .bulk-preview-header {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #4ade80;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .bulk-preview-list {
+      max-height: 170px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bulk-preview-item {
+      background: rgba(15, 24, 50, 0.85);
+      border: 1px solid rgba(99, 130, 215, 0.18);
+      border-right: 3px solid var(--accent-primary);
+      border-radius: 9px;
+      padding: 8px 10px;
+      text-align: right;
+    }
+
+    .bulk-preview-q {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 3px;
+    }
+
+    .bulk-preview-a {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.5;
+      white-space: pre-line;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* حالة الاتصال */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(15, 23, 48, 0.85);
+      border: 1px solid rgba(99, 130, 215, 0.2);
+      margin-bottom: 16px;
+      font-size: 0.86rem;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-left: 6px;
+    }
+
+    .status-online { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .status-offline { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+    .status-error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+    /* النماذج */
+    .form-group {
+      margin-bottom: 12px;
+      text-align: right;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #060b19;
+      border: 1px solid rgba(99, 130, 215, 0.28);
+      border-radius: 10px;
+      padding: 11px 13px;
+      color: #f8fafc;
+      font-family: inherit;
+      font-size: 0.94rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-primary);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 78px;
+    }
+
+    textarea.bulk-textarea {
+      min-height: 170px;
+      line-height: 1.7;
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .ltr-input {
+      direction: ltr;
+      text-align: left;
+      font-family: monospace;
+      font-size: 0.84rem;
+    }
+
+    .btn-sm {
+      padding: 9px 14px;
+      font-size: 0.86rem;
+      min-width: auto;
+      flex: none;
+      border-radius: 10px;
+    }
+
+    .btn-full {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .btn-success {
+      background: #16a34a;
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-warning {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .admin-list, .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .list-item {
+      background: rgba(15, 24, 50, 0.85);
+      border: 1px solid rgba(99, 130, 215, 0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: right;
+    }
+
+    .list-item-q {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #f1f5f9;
+      margin-bottom: 5px;
+    }
+
+    .list-item-a {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 10px;
+      white-space: pre-line;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .history-item {
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .history-item:hover {
+      border-color: var(--accent-primary);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #0f172a;
+      color: #e0f2fe;
+      border: 1px solid var(--accent-primary);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .main-card {
+        padding: 28px 18px 22px;
+      }
+      .btn {
+        max-width: 100%;
+      }
+      .history-fab {
+        bottom: 14px;
+        left: 14px;
+        padding: 9px 14px;
+      }
+    }
+  </style>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="manifest" href="./manifest.json?v=v1795455405962">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="./icon-192.png?v=v1795455405962">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js?v=v1795455405962')
+            .then(reg => console.log('SW Registered'))
+            .catch(err => console.log('SW Failed', err));
+        });
+      }
+    </script>
+</head>
+<body>
+
+  <!-- الكارت الرئيسي -->
+  <main class="main-card">
+    <h1 class="card-title">هنتكلم في إيه دلوقتي؟ 🤔</h1>
+
+    <div class="question-box">
+      <p id="questionText" class="question-text">
+        الأسئلة جاهزة.. دوس على زرار «هات سؤال جديد» عشان نبدأ!
+      </p>
+    </div>
+
+    <!-- صندوق الإجابة -->
+    <div id="answerWrapper" class="answer-wrapper">
+      <div class="answer-label">💡 الإجابة:</div>
+      <div id="answerText" class="answer-text"></div>
+    </div>
+
+    <!-- زرار السؤال وزرار الإجابة -->
+    <div class="actions-row">
+      <button id="newQuestionBtn" class="btn btn-primary">✨ هات سؤال جديد</button>
+      <button id="toggleAnswerBtn" class="btn btn-secondary" disabled>💡 إظهار الإجابة</button>
+    </div>
+
+    <!-- عداد الأسئلة -->
+    <div class="counter-trigger">
+      عدد الأسئلة المتاحة: <span id="questionsCount">1</span>
+    </div>
+  </main>
+
+  <!-- زرار آخر 30 سؤال -->
+  <button id="openHistoryBtn" class="history-fab">
+    <span>🕒</span>
+    <span>آخر 30 سؤال</span>
+  </button>
+
+  <!-- نافذة آخر 30 سؤال -->
+  <div id="historyModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🕒 آخر 30 سؤال</h3>
+        <button class="close-btn" data-close="historyModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة التحقق من الباسورد المخفي -->
+  <div id="passwordModal" class="modal-overlay">
+    <div class="modal-box modal-compact">
+      <div class="modal-header">
+        <h3>🔐 دخول لوحة التحكم</h3>
+        <button class="close-btn" data-close="passwordModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="passwordForm" autocomplete="off">
+          <div class="form-group">
+            <label for="adminPasswordInput">أدخل كلمة المرور السرية:</label>
+            <div class="password-field-wrap">
+              <input
+                id="adminPasswordInput"
+                class="form-control ltr-input"
+                type="password"
+                placeholder="•••••••••"
+                autocomplete="off"
+                spellcheck="false"
+                required
+              />
+              <button type="button" id="togglePassVisibility" class="toggle-pass-btn" aria-label="إظهار أو إخفاء كلمة المرور">👁️</button>
+            </div>
+            <div id="passErrorMsg" class="pass-error-msg"></div>
+          </div>
+          <button type="submit" id="unlockAdminBtn" class="btn btn-primary btn-full">🔓 فتح لوحة التحكم</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة الداشبورد المخفية -->
+  <div id="adminModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚙️ لوحة التحكم المخفية</h3>
+        <button class="close-btn" data-close="adminModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- حالة الاتصال بفايربيز -->
+        <div class="status-bar">
+          <div>
+            <span id="fbStatusDot" class="status-dot status-offline"></span>
+            <span id="fbStatusText">جاري الاتصال بسيرفر Firebase...</span>
+          </div>
+          <small id="fbProjectBadge" style="color:#7dd3fc; font-family:monospace;"></small>
+        </div>
+
+        <!-- التبويبات -->
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="questionsTab">📝 إدارة الأسئلة</button>
+          <button class="tab-btn" data-tab="firebaseTab">🔥 سيرفر Firebase</button>
+        </div>
+
+        <!-- تبويب إدارة الأسئلة -->
+        <div id="questionsTab" class="tab-panel active">
+          <!-- اختيار وضع الإضافة: سؤال واحد أو مجموعة -->
+          <div class="sub-tabs">
+            <button type="button" class="sub-tab-btn active" data-subtab="singleAddPanel">➕ سؤال واحد</button>
+            <button type="button" class="sub-tab-btn" data-subtab="bulkAddPanel">📦 إضافة مجموعة دفعة واحدة</button>
+          </div>
+
+          <!-- وضع إضافة سؤال واحد -->
+          <div id="singleAddPanel" class="sub-panel active">
+            <input type="hidden" id="editQuestionId" value="" />
+
+            <div class="form-group">
+              <label for="inputQuestion">السؤال:</label>
+              <textarea id="inputQuestion" class="form-control" placeholder="اكتب السؤال هنا..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="inputAnswer">إجابة السؤال:</label>
+              <textarea id="inputAnswer" class="form-control" placeholder="اكتب الإجابة هنا..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+              <button id="saveQuestionBtn" class="btn btn-primary btn-sm">💾 حفظ السؤال تلقائي</button>
+              <button id="cancelEditBtn" class="btn btn-secondary btn-sm" style="display:none;">إلغاء التعديل</button>
+            </div>
+          </div>
+
+          <!-- وضع إضافة مجموعة أسئلة مع بعض -->
+          <div id="bulkAddPanel" class="sub-panel">
+            <div class="form-group">
+              <label for="bulkQuestionsInput">الزق مجموعة الأسئلة والأجوبة هنا (النظام هيرتبهم تلقائياً):</label>
+              <textarea
+                id="bulkQuestionsInput"
+                class="form-control bulk-textarea"
+                placeholder="السؤال 1:&#10;نص السؤال الأول...&#10;&#10;الإجابة 1:&#10;نص الإجابة الأولى...&#10;&#10;--------------------&#10;&#10;السؤال 2:&#10;نص السؤال الثاني...&#10;&#10;الإجابة 2:&#10;نص الإجابة الثانية..."
+              ></textarea>
+            </div>
+
+            <!-- معاينة فورية للأسئلة المستخرجة -->
+            <div id="bulkPreviewBox" class="bulk-preview-box">
+              <div class="bulk-preview-header">
+                <span id="bulkDetectedText">✅ تم التعرف على 0 أسئلة جاهزة للحفظ</span>
+              </div>
+              <div id="bulkPreviewList" class="bulk-preview-list"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+              <button id="saveBulkQuestionsBtn" class="btn btn-primary btn-sm">📦 حفظ المجموعة كلها تلقائي</button>
+              <button id="clearBulkBtn" class="btn btn-secondary btn-sm">🧹 مسح النص</button>
+            </div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid rgba(99,130,215,0.18); margin:16px 0;" />
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="font-size:0.95rem;">الأسئلة المحفوظة (<span id="adminCount">0</span>)</strong>
+          </div>
+          <div id="adminQuestionsList" class="admin-list"></div>
+        </div>
+
+        <!-- تبويب تغيير سيرفر Firebase -->
+        <div id="firebaseTab" class="tab-panel">
+          <div class="form-group">
+            <label for="rawConfigPaste">لصق سريع لكود firebaseConfig (اختياري):</label>
+            <textarea id="rawConfigPaste" class="form-control ltr-input" placeholder="const firebaseConfig = { apiKey: '...', databaseURL: '...' };"></textarea>
+            <button id="parseConfigBtn" class="btn btn-secondary btn-sm" style="margin-top:8px;">⚡ استخراج الإعدادات تلقائياً</button>
+          </div>
+
+          <hr style="border:none; border-top:1px solid rgba(99,130,215,0.18); margin:14px 0;" />
+
+          <div class="config-grid">
+            <div class="form-group">
+              <label>apiKey</label>
+              <input id="cfg_apiKey" class="form-control ltr-input" type="text" />
+            </div>
+            <div class="form-group">
+              <label>authDomain</label>
+              <input id="cfg_authDomain" class="form-control ltr-input" type="text" />
+            </div>
+            <div class="form-group">
+              <label>databaseURL (مهم للحفظ)</label>
+              <input id="cfg_databaseURL" class="form-control ltr-input" type="text" />
+            </div>
+            <div class="form-group">
+              <label>projectId</label>
+              <input id="cfg_projectId" class="form-control ltr-input" type="text" />
+            </div>
+            <div class="form-group">
+              <label>storageBucket</label>
+              <input id="cfg_storageBucket" class="form-control ltr-input" type="text" />
+            </div>
+            <div class="form-group">
+              <label>messagingSenderId</label>
+              <input id="cfg_messagingSenderId" class="form-control ltr-input" type="text" />
+            </div>
+            <div class="form-group">
+              <label>appId</label>
+              <input id="cfg_appId" class="form-control ltr-input" type="text" />
+            </div>
+            <div class="form-group">
+              <label>measurementId</label>
+              <input id="cfg_measurementId" class="form-control ltr-input" type="text" />
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+            <button id="saveFirebaseBtn" class="btn btn-primary btn-sm">🔥 حفظ وتوصيل السيرفر</button>
+            <button id="syncToServerBtn" class="btn btn-success btn-sm">☁️ رفع الأسئلة الحالية للسيرفر</button>
+            <button id="resetFirebaseBtn" class="btn btn-warning btn-sm">↩️ استعادة السيرفر الافتراضي</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- إشعار سريع -->
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
+    import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+    // السيرفر الافتراضي الحالي
+    const DEFAULT_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCA8tjD2nzixDARhXApDLZrtDBIqJY_0I0",
+      authDomain: "myyppproject.firebaseapp.com",
+      databaseURL: "https://myyppproject-default-rtdb.firebaseio.com",
+      projectId: "myyppproject",
+      storageBucket: "myyppproject.firebasestorage.app",
+      messagingSenderId: "679811302650",
+      appId: "1:679811302650:web:23da36e87af1845194b543",
+      measurementId: "G-8X5ET6BQFY"
+    };
+
+    // سؤال واحد فقط افتراضي في الملف
+    const DEFAULT_QUESTIONS = [
+      {
+        id: "q_default_1",
+        q: "ليه وإحنا طالعين السلم بنتعب، إنما وإحنا نازلين مش بنحس بنفس التعب نهائي؟؟",
+        a: "لأن وإحنا طالعين السلم بنشتغل ضد الجاذبية الأرضية، فعضلات الرجلين بتحتاج طاقة وأكسجين أكتر بكتير عشان ترفع وزن الجسم كله لفوق مع كل درجة، وده بيخلي القلب يتسارع والنفس ينهج بسرعة (انقباض عضلي إيجابي).\nأما وإحنا نازلين فالجاذبية بتساعدنا وتشد الجسم لتحت، ودور العضلات بيبقى مجرد «فرامل» للتحكم في النزول والتوازن (انقباض لا مركزي)، وده بيستهلك طاقة أقل بحوالي 3 أضعاف، عشان كده مش بنحس بنفس التعب أو النهجان، مع إن النزول بيحط ضغط أكبر شوية على مفصل الركبة."
+      }
+    ];
+
+    const STORAGE_KEYS = {
+      FB_CONFIG: "midnight_qa_firebase_config_v1",
+      QUESTIONS_CACHE: "midnight_qa_questions_cache_v1",
+      HISTORY: "midnight_qa_history_v1",
+      USER_CLEARED: "midnight_qa_user_cleared_v1"
+    };
+
+    // نظام التحقق أحادي الاتجاه (كلمة المرور غير موجودة نهائياً داخل الكود)
+    const AUTH_SIG = Object.freeze({
+      a: 790905157,
+      b: 930389204,
+      c: 19552,
+      d: 0x53
+    });
+
+    let isAdminUnlocked = false;
+    let failedAttempts = 0;
+    let lockUntilTimestamp = 0;
+    let lockCountdownTimer = null;
+
+    function verifySecretPass(input) {
+      if (typeof input !== "string") return false;
+      const len = input.length;
+      if ((len ^ 0x5A) !== AUTH_SIG.d) return false;
+
+      let h1 = 7;
+      let h2 = 13;
+      let h3 = 0;
+
+      for (let i = 0; i < len; i++) {
+        const code = input.charCodeAt(i);
+        h1 = (h1 * 101 + code) % 1000000007;
+        h3 += code * (i + 1) * (i + 1);
+      }
+
+      for (let i = len - 1; i >= 0; i--) {
+        const code = input.charCodeAt(i);
+        h2 = (h2 * 1001 + code) % 1000000009;
+      }
+
+      return h1 === AUTH_SIG.a && h2 === AUTH_SIG.b && h3 === AUTH_SIG.c;
+    }
+
+    let firebaseApp = null;
+    let db = null;
+    let unsubscribeQuestions = null;
+    let isFirebaseReady = false;
+
+    let questions = loadLocalQuestions();
+    let historyList = loadHistory();
+    let currentQuestion = null;
+
+    // عناصر الواجهة
+    const questionTextEl = document.getElementById("questionText");
+    const answerWrapperEl = document.getElementById("answerWrapper");
+    const answerTextEl = document.getElementById("answerText");
+    const newQuestionBtn = document.getElementById("newQuestionBtn");
+    const toggleAnswerBtn = document.getElementById("toggleAnswerBtn");
+    const questionsCountEl = document.getElementById("questionsCount");
+
+    const openHistoryBtn = document.getElementById("openHistoryBtn");
+    const historyModal = document.getElementById("historyModal");
+    const historyListEl = document.getElementById("historyList");
+
+    const passwordModal = document.getElementById("passwordModal");
+    const passwordForm = document.getElementById("passwordForm");
+    const adminPasswordInput = document.getElementById("adminPasswordInput");
+    const togglePassVisibility = document.getElementById("togglePassVisibility");
+    const passErrorMsg = document.getElementById("passErrorMsg");
+    const unlockAdminBtn = document.getElementById("unlockAdminBtn");
+
+    const adminModal = document.getElementById("adminModal");
+    const fbStatusDot = document.getElementById("fbStatusDot");
+    const fbStatusText = document.getElementById("fbStatusText");
+    const fbProjectBadge = document.getElementById("fbProjectBadge");
+    const adminCountEl = document.getElementById("adminCount");
+    const adminQuestionsListEl = document.getElementById("adminQuestionsList");
+
+    const editQuestionIdEl = document.getElementById("editQuestionId");
+    const inputQuestionEl = document.getElementById("inputQuestion");
+    const inputAnswerEl = document.getElementById("inputAnswer");
+    const saveQuestionBtn = document.getElementById("saveQuestionBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    const bulkQuestionsInput = document.getElementById("bulkQuestionsInput");
+    const bulkPreviewBox = document.getElementById("bulkPreviewBox");
+    const bulkDetectedText = document.getElementById("bulkDetectedText");
+    const bulkPreviewList = document.getElementById("bulkPreviewList");
+    const saveBulkQuestionsBtn = document.getElementById("saveBulkQuestionsBtn");
+    const clearBulkBtn = document.getElementById("clearBulkBtn");
+
+    const rawConfigPasteEl = document.getElementById("rawConfigPaste");
+    const parseConfigBtn = document.getElementById("parseConfigBtn");
+    const saveFirebaseBtn = document.getElementById("saveFirebaseBtn");
+    const syncToServerBtn = document.getElementById("syncToServerBtn");
+    const resetFirebaseBtn = document.getElementById("resetFirebaseBtn");
+    const toastEl = document.getElementById("toast");
+
+    const configFields = [
+      "apiKey", "authDomain", "databaseURL", "projectId",
+      "storageBucket", "messagingSenderId", "appId", "measurementId"
+    ];
+
+    // دوال مساعدة
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function loadSavedConfig() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.FB_CONFIG);
+        if (raw) return { ...DEFAULT_FIREBASE_CONFIG, ...JSON.parse(raw) };
+      } catch (e) {}
+      return { ...DEFAULT_FIREBASE_CONFIG };
+    }
+
+    function loadLocalQuestions() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.QUESTIONS_CACHE);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+      return [...DEFAULT_QUESTIONS];
+    }
+
+    function saveLocalQuestions() {
+      localStorage.setItem(STORAGE_KEYS.QUESTIONS_CACHE, JSON.stringify(questions));
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return [];
+    }
+
+    function saveHistory() {
+      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(historyList.slice(0, 30)));
+    }
+
+    function setConnectionStatus(type, text, projectId = "") {
+      fbStatusDot.className = "status-dot " + (
+        type === "online" ? "status-online" :
+        type === "error" ? "status-error" : "status-offline"
+      );
+      fbStatusText.textContent = text;
+      fbProjectBadge.textContent = projectId ? `Project: ${projectId}` : "";
+    }
+
+    function fillConfigInputs(cfg) {
+      configFields.forEach((key) => {
+        const el = document.getElementById("cfg_" + key);
+        if (el) el.value = cfg[key] || "";
+      });
+    }
+
+    function readConfigInputs() {
+      const cfg = {};
+      configFields.forEach((key) => {
+        const el = document.getElementById("cfg_" + key);
+        cfg[key] = el ? el.value.trim() : "";
+      });
+      return cfg;
+    }
+
+    function updateCountersAndAdminList() {
+      questionsCountEl.textContent = questions.length;
+      adminCountEl.textContent = questions.length;
+      renderAdminList();
+    }
+
+    function switchSubTab(targetId) {
+      document.querySelectorAll(".sub-tab-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.subtab === targetId);
+      });
+      document.querySelectorAll(".sub-panel").forEach((p) => {
+        p.classList.toggle("active", p.id === targetId);
+      });
+    }
+
+    // المحلل الذكي لاستخراج وترتيب مجموعة أسئلة وأجوبة من نص واحد
+    function parseBulkQuestions(rawText) {
+      const normalized = String(rawText || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      const lines = normalized.split("\n");
+
+      const sepRe = /^\s*[-_=*•~]{3,}\s*$/;
+      const qHeaderColonRe = /^\s*(?:\*\*|##)?\s*(?:(?:ال)?س[ؤو]ال(?:\s+(?:رقم\s*)?(?:[\d٠-٩]+|الأول|الاول|الثاني|التاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر))?\s*[:：\-–—]|(?:س\s*[\d٠-٩]*|Q\s*\d*)\s*[:：])\s*(.*)$/i;
+      const qHeaderAloneRe = /^\s*(?:\*\*|##)?\s*(?:ال)?س[ؤو]ال(?:\s+(?:رقم\s*)?(?:[\d٠-٩]+|الأول|الاول|الثاني|التاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر))?\s*(?:\*\*)?\s*$/;
+      const aHeaderColonRe = /^\s*(?:\*\*|##)?\s*(?:(?:ال)?[إاأ]جاب[ةه](?:\s+الس[ؤو]ال)?(?:\s+(?:رقم\s*)?(?:[\d٠-٩]+|الأول|الاول|الثاني|التاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر))?\s*[:：\-–—]|(?:ج\s*[\d٠-٩]*|A\s*\d*)\s*[:：])\s*(.*)$/i;
+      const aHeaderAloneRe = /^\s*(?:\*\*|##)?\s*(?:ال)?[إاأ]جاب[ةه](?:\s+الس[ؤو]ال)?(?:\s+(?:رقم\s*)?(?:[\d٠-٩]+|الأول|الاول|الثاني|التاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر))?\s*(?:\*\*)?\s*$/;
+
+      const results = [];
+      let current = null;
+      let mode = null;
+
+      const cleanLines = (arr) => arr.join("\n").trim().replace(/\n{3,}/g, "\n\n");
+
+      const flush = () => {
+        if (!current) return;
+        const q = cleanLines(current.qLines);
+        const a = cleanLines(current.aLines);
+        if (q) {
+          results.push({ q, a });
+        }
+        current = null;
+        mode = null;
+      };
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        if (sepRe.test(line)) {
+          flush();
+          continue;
+        }
+
+        const qMatchColon = line.match(qHeaderColonRe);
+        if (qMatchColon || qHeaderAloneRe.test(line)) {
+          flush();
+          current = { qLines: [], aLines: [] };
+          mode = "q";
+          const inlineText = qMatchColon ? qMatchColon[1].replace(/\*\*$/g, "").trim() : "";
+          if (inlineText) current.qLines.push(inlineText);
+          continue;
+        }
+
+        const aMatchColon = line.match(aHeaderColonRe);
+        if (aMatchColon || aHeaderAloneRe.test(line)) {
+          if (!current) {
+            current = { qLines: [], aLines: [] };
+          }
+          mode = "a";
+          const inlineText = aMatchColon ? aMatchColon[1].replace(/\*\*$/g, "").trim() : "";
+          if (inlineText) current.aLines.push(inlineText);
+          continue;
+        }
+
+        if (mode === "q" && current) {
+          if (line !== "" || current.qLines.length > 0) {
+            current.qLines.push(line);
+          }
+        } else if (mode === "a" && current) {
+          if (line !== "" || current.aLines.length > 0) {
+            current.aLines.push(line);
+          }
+        }
+      }
+
+      flush();
+      return results;
+    }
+
+    function updateBulkPreview() {
+      const parsed = parseBulkQuestions(bulkQuestionsInput.value);
+      if (parsed.length === 0) {
+        bulkPreviewBox.classList.remove("show");
+        bulkPreviewList.innerHTML = "";
+        return;
+      }
+
+      bulkPreviewBox.classList.add("show");
+      bulkDetectedText.textContent = `✅ تم التعرف على ${parsed.length} ${parsed.length === 1 ? "سؤال" : "أسئلة"} مرتبة وجاهزة للحفظ`;
+      bulkPreviewList.innerHTML = parsed.map((item, idx) => `
+        <div class="bulk-preview-item">
+          <div class="bulk-preview-q">${idx + 1}. ${escapeHtml(item.q)}</div>
+          <div class="bulk-preview-a">${escapeHtml(item.a || "(بدون إجابة)")}</div>
+        </div>
+      `).join("");
+    }
+
+    async function saveBulkQuestions() {
+      if (!isAdminUnlocked) {
+        showToast("🔒 غير مصرح - يلزم إدخال كلمة المرور");
+        return;
+      }
+
+      const parsed = parseBulkQuestions(bulkQuestionsInput.value);
+      if (parsed.length === 0) {
+        showToast("⚠️ لم يتم العثور على أسئلة صالحة، تأكد من وجود «السؤال 1:» و «الإجابة 1:»");
+        return;
+      }
+
+      localStorage.removeItem(STORAGE_KEYS.USER_CLEARED);
+
+      if (isFirebaseReady && db) {
+        try {
+          const questionsRef = ref(db, "questions");
+          const batchUpdates = {};
+          parsed.forEach((item) => {
+            const newKey = push(questionsRef).key;
+            batchUpdates[newKey] = { q: item.q, a: item.a };
+          });
+          await update(questionsRef, batchUpdates);
+          showToast(`✅ تم حفظ ${parsed.length} أسئلة مرتبة تلقائياً في Firebase`);
+        } catch (e) {
+          const baseTime = Date.now();
+          parsed.forEach((item, idx) => {
+            questions.push({ id: `q_${baseTime}_${idx}`, q: item.q, a: item.a });
+          });
+          saveLocalQuestions();
+          updateCountersAndAdminList();
+          showToast(`⚠️ تم حفظ ${parsed.length} أسئلة محلياً (تحقق من صلاحيات Firebase)`);
+        }
+      } else {
+        const baseTime = Date.now();
+        parsed.forEach((item, idx) => {
+          questions.push({ id: `q_${baseTime}_${idx}`, q: item.q, a: item.a });
+        });
+        saveLocalQuestions();
+        updateCountersAndAdminList();
+        showToast(`✅ تم حفظ ${parsed.length} أسئلة محلياً (السيرفر غير متصل)`);
+      }
+
+      bulkQuestionsInput.value = "";
+      updateBulkPreview();
+    }
+
+    // الاتصال بفايربيز وتحديث الأسئلة تلقائياً
+    async function connectFirebase(config) {
+      isFirebaseReady = false;
+      setConnectionStatus("offline", "جاري الاتصال بسيرفر Firebase...", config.projectId);
+
+      if (unsubscribeQuestions) {
+        try { unsubscribeQuestions(); } catch (e) {}
+        unsubscribeQuestions = null;
+      }
+
+      if (firebaseApp) {
+        try { await deleteApp(firebaseApp); } catch (e) {}
+        firebaseApp = null;
+        db = null;
+      }
+
+      if (!config.apiKey || !config.databaseURL) {
+        setConnectionStatus("error", "بيانات السيرفر ناقصة (تأكد من apiKey و databaseURL)");
+        return;
+      }
+
+      try {
+        firebaseApp = initializeApp(config, "app_" + Date.now());
+        try {
+          getAnalytics(firebaseApp);
+        } catch (analyticsErr) {
+          // تجاهل خطأ Analytics عند التشغيل كملف محلي file://
+        }
+
+        db = getDatabase(firebaseApp);
+        const questionsRef = ref(db, "questions");
+
+        unsubscribeQuestions = onValue(
+          questionsRef,
+          async (snapshot) => {
+            isFirebaseReady = true;
+            setConnectionStatus("online", "متصل بـ Firebase (الحفظ التلقائي شغال)", config.projectId);
+
+            if (snapshot.exists()) {
+              const data = snapshot.val();
+              const list = Object.entries(data)
+                .filter(([, val]) => val && val.q)
+                .map(([id, val]) => ({
+                  id,
+                  q: val.q,
+                  a: val.a || "لا توجد إجابة مسجلة لهذا السؤال بعد."
+                }));
+
+              if (list.length > 0) {
+                questions = list;
+                saveLocalQuestions();
+                updateCountersAndAdminList();
+              }
+            } else {
+              // لو قاعدة البيانات فاضية تماماً، نرفع السؤال الافتراضي تلقائياً
+              if (!localStorage.getItem(STORAGE_KEYS.USER_CLEARED)) {
+                try {
+                  const seedObj = {};
+                  questions.forEach((item) => {
+                    seedObj[item.id] = { q: item.q, a: item.a };
+                  });
+                  await set(questionsRef, seedObj);
+                } catch (seedErr) {
+                  setConnectionStatus("error", "متصل للقراءة فقط (راجع Rules في Firebase)", config.projectId);
+                }
+              } else {
+                questions = [];
+                saveLocalQuestions();
+                updateCountersAndAdminList();
+              }
+            }
+          },
+          (error) => {
+            isFirebaseReady = false;
+            setConnectionStatus("error", "تعذر الاتصال بالسيرفر - يعمل محلياً (" + error.code + ")", config.projectId);
+          }
+        );
+      } catch (err) {
+        isFirebaseReady = false;
+        setConnectionStatus("error", "خطأ في إعدادات Firebase - يعمل محلياً");
+      }
+    }
+
+    // عرض سؤال محدد على الشاشة
+    function displayQuestion(item, addToHistory = true) {
+      if (!item) return;
+      currentQuestion = item;
+
+      questionTextEl.style.opacity = "0";
+      setTimeout(() => {
+        questionTextEl.textContent = item.q;
+        questionTextEl.classList.add("active");
+        questionTextEl.style.opacity = "1";
+      }, 120);
+
+      // إخفاء الإجابة عند ظهور سؤال جديد
+      answerWrapperEl.classList.remove("show");
+      answerTextEl.textContent = item.a || "لا توجد إجابة مضافة لهذا السؤال.";
+      toggleAnswerBtn.disabled = false;
+      toggleAnswerBtn.textContent = "💡 إظهار الإجابة";
+
+      if (addToHistory) {
+        historyList = [item, ...historyList.filter((h) => h.id !== item.id)].slice(0, 30);
+        saveHistory();
+      }
+    }
+
+    // اختيار سؤال عشوائي
+    function pickRandomQuestion() {
+      if (questions.length === 0) {
+        questionTextEl.textContent = "مفيش أسئلة حالياً.. ضيف أسئلة من لوحة التحكم!";
+        questionTextEl.classList.remove("active");
+        answerWrapperEl.classList.remove("show");
+        toggleAnswerBtn.disabled = true;
+        return;
+      }
+
+      if (questions.length === 1) {
+        displayQuestion(questions[0]);
+        return;
+      }
+
+      let pool = questions.filter((q) => !currentQuestion || q.id !== currentQuestion.id);
+      if (pool.length === 0) pool = questions;
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+      displayQuestion(chosen);
+    }
+
+    // إظهار / إخفاء الإجابة
+    function toggleAnswer() {
+      if (!currentQuestion) return;
+      const isShown = answerWrapperEl.classList.toggle("show");
+      toggleAnswerBtn.textContent = isShown ? "🙈 إخفاء الإجابة" : "💡 إظهار الإجابة";
+    }
+
+    // عرض قائمة آخر 30 سؤال
+    function renderHistoryModal() {
+      if (historyList.length === 0) {
+        historyListEl.innerHTML = `<p style="text-align:center; color:#94a3b8; padding:24px 0;">لسه مفيش أسئلة اتعرضت.</p>`;
+        return;
+      }
+      historyListEl.innerHTML = historyList.map((item, idx) => `
+        <div class="list-item history-item" data-history-idx="${idx}">
+          <div class="list-item-q">${idx + 1}. ${escapeHtml(item.q)}</div>
+          <div style="font-size:0.8rem; color:#38bdf8;">اضغط لعرض السؤال والإجابة</div>
+        </div>
+      `).join("");
+
+      historyListEl.querySelectorAll(".history-item").forEach((el) => {
+        el.addEventListener("click", () => {
+          const idx = Number(el.dataset.historyIdx);
+          const item = historyList[idx];
+          if (item) {
+            displayQuestion(item, false);
+            historyModal.classList.remove("open");
+          }
+        });
+      });
+    }
+
+    // عرض قائمة الأسئلة داخل الداشبورد
+    function renderAdminList() {
+      if (questions.length === 0) {
+        adminQuestionsListEl.innerHTML = `<p style="text-align:center; color:#94a3b8; padding:14px 0;">لا توجد أسئلة بعد.</p>`;
+        return;
+      }
+
+      adminQuestionsListEl.innerHTML = questions.map((item) => `
+        <div class="list-item">
+          <div class="list-item-q">${escapeHtml(item.q)}</div>
+          <div class="list-item-a">${escapeHtml(item.a || "")}</div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" data-edit="${escapeHtml(item.id)}">✏️ تعديل</button>
+            <button class="btn btn-danger btn-sm" data-delete="${escapeHtml(item.id)}">🗑️ حذف</button>
+          </div>
+        </div>
+      `).join("");
+
+      adminQuestionsListEl.querySelectorAll("[data-edit]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!isAdminUnlocked) return;
+          const item = questions.find((q) => q.id === btn.dataset.edit);
+          if (!item) return;
+          switchSubTab("singleAddPanel");
+          editQuestionIdEl.value = item.id;
+          inputQuestionEl.value = item.q;
+          inputAnswerEl.value = item.a || "";
+          cancelEditBtn.style.display = "inline-flex";
+          saveQuestionBtn.textContent = "✅ تحديث السؤال";
+          inputQuestionEl.focus();
+        });
+      });
+
+      adminQuestionsListEl.querySelectorAll("[data-delete]").forEach((btn) => {
+        btn.addEventListener("click", () => deleteQuestion(btn.dataset.delete));
+      });
+    }
+
+    // إضافة أو تعديل سؤال وحفظه تلقائياً
+    async function saveQuestion() {
+      if (!isAdminUnlocked) {
+        showToast("🔒 غير مصرح - يلزم إدخال كلمة المرور");
+        return;
+      }
+
+      const q = inputQuestionEl.value.trim();
+      const a = inputAnswerEl.value.trim();
+      const editId = editQuestionIdEl.value.trim();
+
+      if (!q) {
+        showToast("⚠️ اكتب السؤال الأول");
+        return;
+      }
+
+      localStorage.removeItem(STORAGE_KEYS.USER_CLEARED);
+
+      if (editId) {
+        questions = questions.map((item) => item.id === editId ? { ...item, q, a } : item);
+        saveLocalQuestions();
+        updateCountersAndAdminList();
+
+        if (isFirebaseReady && db) {
+          try {
+            await update(ref(db, "questions/" + editId), { q, a });
+            showToast("✅ تم تعديل السؤال وحفظه في Firebase");
+          } catch (e) {
+            showToast("⚠️ تم التعديل محلياً (فشل التحديث في السيرفر)");
+          }
+        } else {
+          showToast("✅ تم التعديل محلياً");
+        }
+      } else {
+        if (isFirebaseReady && db) {
+          try {
+            const newRef = push(ref(db, "questions"));
+            await set(newRef, { q, a });
+            showToast("✅ تم حفظ السؤال تلقائياً في Firebase");
+          } catch (e) {
+            const localId = "q_" + Date.now();
+            questions.push({ id: localId, q, a });
+            saveLocalQuestions();
+            updateCountersAndAdminList();
+            showToast("⚠️ تم الحفظ محلياً (تحقق من صلاحيات Firebase)");
+          }
+        } else {
+          const localId = "q_" + Date.now();
+          questions.push({ id: localId, q, a });
+          saveLocalQuestions();
+          updateCountersAndAdminList();
+          showToast("✅ تم الحفظ محلياً (السيرفر غير متصل)");
+        }
+      }
+
+      resetQuestionForm();
+    }
+
+    function resetQuestionForm() {
+      editQuestionIdEl.value = "";
+      inputQuestionEl.value = "";
+      inputAnswerEl.value = "";
+      cancelEditBtn.style.display = "none";
+      saveQuestionBtn.textContent = "💾 حفظ السؤال تلقائي";
+    }
+
+    async function deleteQuestion(id) {
+      if (!isAdminUnlocked) return;
+      if (!confirm("متأكد إنك عايز تحذف السؤال ده؟")) return;
+
+      questions = questions.filter((item) => item.id !== id);
+      if (questions.length === 0) {
+        localStorage.setItem(STORAGE_KEYS.USER_CLEARED, "1");
+      }
+      saveLocalQuestions();
+      updateCountersAndAdminList();
+
+      if (isFirebaseReady && db) {
+        try {
+          await remove(ref(db, "questions/" + id));
+          showToast("🗑️ تم حذف السؤال من Firebase");
+        } catch (e) {
+          showToast("⚠️ تم الحذف محلياً فقط");
+        }
+      } else {
+        showToast("🗑️ تم الحذف محلياً");
+      }
+    }
+
+    // استخراج إعدادات Firebase تلقائياً من الكود الملصوق
+    function parseRawFirebaseConfig() {
+      if (!isAdminUnlocked) return;
+      const text = rawConfigPasteEl.value;
+      if (!text.trim()) {
+        showToast("⚠️ الزق كود firebaseConfig الأول");
+        return;
+      }
+
+      let foundAny = false;
+      configFields.forEach((key) => {
+        const regex = new RegExp(`["']?${key}["']?\\s*:\\s*["']([^"']+)["']`);
+        const match = text.match(regex);
+        if (match && match[1]) {
+          document.getElementById("cfg_" + key).value = match[1].trim();
+          foundAny = true;
+        }
+      });
+
+      if (foundAny) {
+        showToast("⚡ تم استخراج بيانات السيرفر بنجاح! اضغط «حفظ وتوصيل السيرفر»");
+      } else {
+        showToast("⚠️ لم يتم العثور على بيانات firebaseConfig صالحة");
+      }
+    }
+
+    // رفع الأسئلة المحلية للسيرفر الحالي
+    async function syncCurrentQuestionsToServer() {
+      if (!isAdminUnlocked) return;
+      if (!db) {
+        showToast("⚠️ السيرفر غير متصل حالياً");
+        return;
+      }
+      try {
+        const payload = {};
+        questions.forEach((item) => {
+          payload[item.id] = { q: item.q, a: item.a || "" };
+        });
+        await set(ref(db, "questions"), payload);
+        showToast("☁️ تم رفع ومزامنة كل الأسئلة للسيرفر بنجاح");
+      } catch (e) {
+        showToast("❌ فشل الرفع - تأكد من تفعيل Realtime Database وصلاحيات الكتابة");
+      }
+    }
+
+    // فتح نافذة الباسورد السرية
+    function openPasswordGate() {
+      if (adminModal.classList.contains("open")) return;
+      historyModal.classList.remove("open");
+      adminPasswordInput.value = "";
+      adminPasswordInput.type = "password";
+      togglePassVisibility.textContent = "👁️";
+      updateLockStateUI();
+      passwordModal.classList.add("open");
+      setTimeout(() => adminPasswordInput.focus(), 80);
+    }
+
+    function updateLockStateUI() {
+      clearInterval(lockCountdownTimer);
+      const remainingMs = lockUntilTimestamp - Date.now();
+      if (remainingMs > 0) {
+        adminPasswordInput.disabled = true;
+        unlockAdminBtn.disabled = true;
+        const tick = () => {
+          const left = Math.ceil((lockUntilTimestamp - Date.now()) / 1000);
+          if (left <= 0) {
+            clearInterval(lockCountdownTimer);
+            failedAttempts = 0;
+            adminPasswordInput.disabled = false;
+            unlockAdminBtn.disabled = false;
+            passErrorMsg.textContent = "";
+            adminPasswordInput.focus();
+          } else {
+            passErrorMsg.textContent = `⛔ محاولات خاطئة متكررة.. انتظر ${left} ثانية`;
+          }
+        };
+        tick();
+        lockCountdownTimer = setInterval(tick, 500);
+      } else {
+        adminPasswordInput.disabled = false;
+        unlockAdminBtn.disabled = false;
+        passErrorMsg.textContent = "";
+      }
+    }
+
+    function openAdminDashboard() {
+      isAdminUnlocked = true;
+      fillConfigInputs(loadSavedConfig());
+      renderAdminList();
+      adminModal.classList.add("open");
+    }
+
+    function closeModalById(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove("open");
+      if (id === "adminModal") {
+        isAdminUnlocked = false;
+        resetQuestionForm();
+      }
+      if (id === "passwordModal") {
+        adminPasswordInput.value = "";
+        clearInterval(lockCountdownTimer);
+      }
+    }
+
+    // التحقق عند إرسال الباسورد
+    passwordForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (Date.now() < lockUntilTimestamp) {
+        updateLockStateUI();
+        return;
+      }
+
+      const entered = adminPasswordInput.value;
+      if (verifySecretPass(entered)) {
+        failedAttempts = 0;
+        adminPasswordInput.value = "";
+        passErrorMsg.textContent = "";
+        passwordModal.classList.remove("open");
+        openAdminDashboard();
+        showToast("🔓 تم فتح لوحة التحكم بنجاح");
+      } else {
+        failedAttempts++;
+        adminPasswordInput.value = "";
+        if (failedAttempts >= 5) {
+          lockUntilTimestamp = Date.now() + 30000;
+          updateLockStateUI();
+        } else {
+          passErrorMsg.textContent = `❌ كلمة المرور غير صحيحة (متبقي ${5 - failedAttempts} محاولات)`;
+          adminPasswordInput.focus();
+        }
+      }
+    });
+
+    togglePassVisibility.addEventListener("click", () => {
+      const isHidden = adminPasswordInput.type === "password";
+      adminPasswordInput.type = isHidden ? "text" : "password";
+      togglePassVisibility.textContent = isHidden ? "🙈" : "👁️";
+      adminPasswordInput.focus();
+    });
+
+    // الأحداث الرئيسية
+    newQuestionBtn.addEventListener("click", pickRandomQuestion);
+    toggleAnswerBtn.addEventListener("click", toggleAnswer);
+
+    // زرار «آخر 30 سؤال»: ضغطة واحدة تفتح السجل، و 3 ضغطات سريعة متتالية تفتح الداشبورد المخفية
+    let historyTapCount = 0;
+    let historyTapTimer = null;
+
+    openHistoryBtn.addEventListener("click", () => {
+      historyTapCount++;
+      clearTimeout(historyTapTimer);
+
+      if (historyTapCount >= 3) {
+        historyTapCount = 0;
+        openPasswordGate();
+        return;
+      }
+
+      historyTapTimer = setTimeout(() => {
+        historyTapCount = 0;
+        renderHistoryModal();
+        historyModal.classList.add("open");
+      }, 340);
+    });
+
+    // فتح الداشبورد المخفية من كيبورد اللاب بزر F3
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "F3" || e.keyCode === 114) {
+        e.preventDefault();
+        openPasswordGate();
+      } else if (e.key === "Escape") {
+        closeModalById("passwordModal");
+        closeModalById("historyModal");
+        closeModalById("adminModal");
+      }
+    });
+
+    // إغلاق النوافذ
+    document.querySelectorAll("[data-close]").forEach((btn) => {
+      btn.addEventListener("click", () => closeModalById(btn.dataset.close));
+    });
+
+    [historyModal, passwordModal, adminModal].forEach((overlay) => {
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeModalById(overlay.id);
+      });
+    });
+
+    // التبديل بين تبويبات الداشبورد الرئيسية
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // التبديل بين وضع السؤال الواحد ووضع المجموعة
+    document.querySelectorAll(".sub-tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => switchSubTab(btn.dataset.subtab));
+    });
+
+    // أحداث الإضافة الفردية والجماعية
+    saveQuestionBtn.addEventListener("click", saveQuestion);
+    cancelEditBtn.addEventListener("click", resetQuestionForm);
+    bulkQuestionsInput.addEventListener("input", updateBulkPreview);
+    saveBulkQuestionsBtn.addEventListener("click", saveBulkQuestions);
+    clearBulkBtn.addEventListener("click", () => {
+      bulkQuestionsInput.value = "";
+      updateBulkPreview();
+      bulkQuestionsInput.focus();
+    });
+
+    parseConfigBtn.addEventListener("click", parseRawFirebaseConfig);
+    syncToServerBtn.addEventListener("click", syncCurrentQuestionsToServer);
+
+    saveFirebaseBtn.addEventListener("click", () => {
+      if (!isAdminUnlocked) return;
+      const newCfg = readConfigInputs();
+      if (!newCfg.apiKey || !newCfg.databaseURL) {
+        showToast("⚠️ لازم تدخل apiKey و databaseURL على الأقل");
+        return;
+      }
+      localStorage.setItem(STORAGE_KEYS.FB_CONFIG, JSON.stringify(newCfg));
+      connectFirebase(newCfg);
+      showToast("🔥 تم حفظ السيرفر الجديد وجاري الاتصال...");
+    });
+
+    resetFirebaseBtn.addEventListener("click", () => {
+      if (!isAdminUnlocked) return;
+      localStorage.removeItem(STORAGE_KEYS.FB_CONFIG);
+      fillConfigInputs(DEFAULT_FIREBASE_CONFIG);
+      connectFirebase(DEFAULT_FIREBASE_CONFIG);
+      showToast("↩️ تم استعادة السيرفر الافتراضي");
+    });
+
+    // التشغيل الأولي
+    updateCountersAndAdminList();
+    connectFirebase(loadSavedConfig());
+  </script>
+</body>
+</html>
